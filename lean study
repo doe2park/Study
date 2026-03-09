@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>CE268B Glossary</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --bg: #0b0f1a;
+    --bg2: #111827;
+    --bg3: #1e293b;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --muted: #64748b;
+    --subtle: #334155;
+    --accent: #818cf8;
+  }
+  html, body { background: var(--bg); color: var(--text); font-family: -apple-system, 'SF Pro Text', sans-serif; font-size: 16px; min-height: 100vh; }
+
+  /* TOP BAR */
+  .topbar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(11,15,26,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 16px 0;
+  }
+  .topbar-title { font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 1px; margin-bottom: 2px; }
+  .topbar-sub { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+  .search-wrap { position: relative; margin-bottom: 10px; }
+  .search-input {
+    width: 100%; padding: 10px 14px 10px 38px;
+    background: var(--bg3); border: 1px solid var(--subtle);
+    border-radius: 10px; color: var(--text); font-size: 15px;
+    outline: none; -webkit-appearance: none;
+  }
+  .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 15px; pointer-events: none; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 0; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; padding-bottom: 0; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0; padding: 8px 14px; font-size: 12px; font-weight: 600;
+    border: none; background: none; cursor: pointer; color: var(--muted);
+    border-bottom: 2px solid transparent; white-space: nowrap;
+    transition: all 0.15s;
+  }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* CARDS */
+  .list { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; padding-bottom: 80px; }
+
+  .card {
+    background: var(--bg2); border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden; transition: border-color 0.2s;
+  }
+  .card.starred { border-color: #f59e0b55; }
+
+  .card-head {
+    display: flex; align-items: center; gap: 10; padding: 14px 16px;
+    cursor: pointer; user-select: none; gap: 10px;
+  }
+  .cat-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .card-term { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; line-height: 1.3; }
+  .card-badge {
+    font-size: 10px; padding: 2px 7px; border-radius: 99px;
+    font-weight: 700; white-space: nowrap; flex-shrink: 0;
+  }
+  .chevron { color: var(--muted); font-size: 13px; flex-shrink: 0; transition: transform 0.2s; }
+  .card.open .chevron { transform: rotate(180deg); }
+
+  .card-body {
+    display: none; padding: 0 16px 16px; border-top: 1px solid var(--border);
+  }
+  .card.open .card-body { display: block; }
+
+  .card-def { font-size: 14px; color: #94a3b8; line-height: 1.7; padding-top: 12px; }
+  .card-cat-label { font-size: 10px; color: var(--muted); margin-top: 10px; letter-spacing: 1px; font-weight: 600; text-transform: uppercase; }
+
+  .star-btn {
+    background: none; border: none; cursor: pointer; font-size: 18px;
+    padding: 2px 4px; flex-shrink: 0;
+  }
+
+  /* COUNT BAR */
+  .count-bar { font-size: 12px; color: var(--muted); padding: 8px 14px 0; }
+
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(11,15,26,0.97);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid var(--border);
+    display: flex; padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+  }
+  .nav-btn {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    gap: 3px; background: none; border: none; cursor: pointer;
+    padding: 4px 0; color: var(--muted); font-size: 10px; font-weight: 600;
+    transition: color 0.15s;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-icon { font-size: 20px; }
+
+  /* FLASHCARD VIEW */
+  .fc-view { padding: 16px 14px; padding-bottom: 80px; }
+  .fc-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .fc-counter { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .fc-progress { height: 3px; background: var(--subtle); border-radius: 99px; margin-bottom: 20px; }
+  .fc-progress-inner { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.3s; }
+
+  .flashcard {
+    min-height: 220px; border-radius: 16px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 28px 24px; text-align: center;
+    background: var(--bg2); border: 1px solid var(--subtle);
+    transition: transform 0.08s; active:transform: scale(0.98);
+    margin-bottom: 16px; position: relative;
+  }
+  .flashcard:active { transform: scale(0.98); }
+  .fc-hint { font-size: 11px; color: var(--muted); margin-bottom: 16px; }
+  .fc-front-term { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.3; }
+  .fc-cat { font-size: 11px; padding: 3px 10px; border-radius: 99px; margin-top: 14px; font-weight: 600; }
+  .fc-prio { font-size: 11px; color: #f59e0b; margin-top: 10px; }
+  .fc-back-label { font-size: 11px; color: var(--muted); margin-bottom: 12px; font-weight: 600; letter-spacing: 1px; }
+  .fc-back-def { font-size: 14px; color: #cbd5e1; line-height: 1.7; }
+
+  .fc-actions { display: flex; gap: 10px; }
+  .fc-btn {
+    flex: 1; padding: 14px; border-radius: 12px; border: 1px solid;
+    font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.1s;
+  }
+  .fc-btn:active { opacity: 0.7; }
+  .fc-btn.know { border-color: #10b981; background: #10b98122; color: #34d399; }
+  .fc-btn.learn { border-color: #ef4444; background: #ef444422; color: #f87171; }
+  .fc-nav { display: flex; gap: 8px; margin-bottom: 12px; }
+  .fc-nav-btn { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid var(--subtle); background: var(--bg3); color: var(--muted); font-size: 14px; cursor: pointer; }
+
+  /* QUIZ VIEW */
+  .quiz-view { padding: 16px 14px; padding-bottom: 80px; }
+  .quiz-q { font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 600; letter-spacing: 1px; }
+  .quiz-term { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 20px; line-height: 1.35; }
+  .quiz-opts { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+  .quiz-opt {
+    padding: 14px 16px; border-radius: 12px; border: 1px solid var(--subtle);
+    background: var(--bg2); color: #94a3b8; font-size: 14px; line-height: 1.5;
+    cursor: pointer; text-align: left; transition: all 0.15s;
+  }
+  .quiz-opt:active { opacity: 0.8; }
+  .quiz-opt.correct { border-color: #10b981; background: #10b98122; color: #34d399; }
+  .quiz-opt.wrong { border-color: #ef4444; background: #ef444422; color: #f87171; }
+  .quiz-feedback { padding: 12px 16px; border-radius: 10px; font-size: 14px; margin-bottom: 14px; text-align: center; }
+  .quiz-feedback.correct { background: #10b98122; color: #34d399; }
+  .quiz-feedback.wrong { background: #ef444422; color: #f87171; }
+  .quiz-next { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+  .quiz-start { background: var(--bg2); border-radius: 14px; padding: 32px 20px; text-align: center; }
+  .quiz-start h2 { color: var(--text); margin-bottom: 8px; }
+  .quiz-start p { color: var(--muted); font-size: 14px; margin-bottom: 24px; }
+  .quiz-start-btn { padding: 14px 40px; border-radius: 12px; border: none; background: var(--accent); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; }
+  .quiz-result { background: var(--bg2); border-radius: 14px; padding: 40px 20px; text-align: center; }
+  .quiz-result-score { font-size: 52px; font-weight: 800; margin-bottom: 8px; }
+  .quiz-result-msg { font-size: 16px; color: var(--muted); margin-bottom: 24px; }
+  .quiz-result-btn { padding: 12px 32px; border-radius: 10px; border: none; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; }
+
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 15px; }
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+const CAT_COLORS = {
+  "Supply Chain": "#3b82f6",
+  "Materials": "#f59e0b",
+  "Lean/TPS": "#10b981",
+  "Production": "#8b5cf6",
+  "Process Types": "#ec4899",
+  "Simulation": "#ef4444",
+  "Scheduling": "#6366f1",
+  "CODP": "#14b8a6",
+  "Statistics": "#f97316",
+};
+
+const TERMS = [
+  { term: "Supply Chain Management (SCM)", cat: "Supply Chain", star: true, def: "The practice of a group of companies working collaboratively in a linked chain of interrelated processes designed to best satisfy end-customer needs while rewarding all members of the chain." },
+  { term: "Trial Allocation", cat: "Materials", star: true, def: "A preliminary assignment of materials to a specific project or work order before actual allocation is confirmed — used to reserve materials and plan ahead." },
+  { term: "Commodity Material", cat: "Materials", star: true, def: "Material made by different manufacturers but more-or-less indistinguishably, allowing substitution. Also: material supplied in bulk quantity for which no piecemeal quantity take-off is done." },
+  { term: "Expediting", cat: "Materials", star: true, def: "Effort to shorten the duration of an activity from what is typical. It is considered waste because it signals the supplier cannot be trusted to keep their promise." },
+  { term: "Four Roles of SCM (Vrijhoef & Koskela)", cat: "Supply Chain", star: true, def: "Role 1: Manage supply→site interface. Role 2: Improve supply chain performance. Role 3: Transfer on-site work upstream (offsite fabrication). Role 4: Integrate and manage the entire supply chain." },
+  { term: "Just-in-Time (JIT)", cat: "Lean/TPS", star: true, def: "Delivery of input to a customer process just prior to when that process needs it. One of two pillars of the Toyota Production System (other is Jidoka/Built-in Quality)." },
+  { term: "Little's Law", cat: "Lean/TPS", star: true, def: "WIP = TH × CT. Work In Process equals Throughput rate multiplied by Cycle Time. A fundamental relationship in production system design." },
+  { term: "Customer-Order Decoupling Point (CODP)", cat: "CODP", star: true, def: "Point in the supply chain where a product transitions from being made to forecast (upstream) to being made to a specific customer order (downstream). Location determines customer lead time and inventory levels." },
+  { term: "Backorder", cat: "Materials", star: false, def: "When a material order cannot be filled immediately because the item is out of stock; fulfillment is deferred to a later date." },
+  { term: "Bill of Materials (BOM)", cat: "Materials", star: false, def: "A comprehensive list of raw materials, components, and instructions required to construct or manufacture a product." },
+  { term: "Fabrication", cat: "Materials", star: false, def: "Process of customizing materials by means of cutting, drilling, fastening, welding, etc." },
+  { term: "OS&D (Over, Short, and Damaged)", cat: "Materials", star: false, def: "Report filed when delivered goods are found to be more (over), fewer (short), or damaged compared to what was ordered. Used in receiving/inspection." },
+  { term: "Owner Managed Inventory (OMI)", cat: "Supply Chain", star: false, def: "An arrangement where the project owner takes responsibility for procuring and managing the supply chain for certain materials, rather than delegating to the contractor." },
+  { term: "Postponement of Customization", cat: "Supply Chain", star: false, def: "Delaying product customization as late as possible in the supply chain, keeping items generic until a specific customer order is received." },
+  { term: "Irreversible Customization", cat: "Supply Chain", star: false, def: "A point in production where a product is modified in a way that cannot be undone — after this point it can only serve one specific customer's needs." },
+  { term: "Multi-project Procurement", cat: "Supply Chain", star: false, def: "Coordinating purchasing of materials or services across multiple projects simultaneously to gain volume discounts and streamline supply." },
+  { term: "Decoupling Buffer", cat: "Lean/TPS", star: false, def: "An inventory buffer between two processes, large enough so the second process can proceed at its own pace without being held up by the first." },
+  { term: "Buffer", cat: "Lean/TPS", star: false, def: "A mechanism for absorbing variation in a system. Types: capacity buffer, inventory buffer, time buffer, monetary buffer (contingency), spatial buffer." },
+  { term: "Pull / Pull-based System", cat: "Lean/TPS", star: false, def: "Initiating delivery of inputs based on the readiness of the downstream (customer) process. Work is released only when downstream can accept it." },
+  { term: "Push / Push-based System", cat: "Lean/TPS", star: false, def: "Releasing materials or information according to a schedule, irrespective of whether the downstream process is ready to receive them." },
+  { term: "Kanban System", cat: "Lean/TPS", star: false, def: "A signal (card/container) indicating how many units to produce or retrieve. A means to limit WIP and match information flow with material flow in a production system." },
+  { term: "Work in Process (WIP)", cat: "Lean/TPS", star: false, def: "Inventory of units currently being worked on within a production process — between raw materials and finished goods." },
+  { term: "Throughput (TH)", cat: "Lean/TPS", star: false, def: "[units/time] The output rate of a production process — the number of units produced in a stated period of time." },
+  { term: "Cycle Time (CT)", cat: "Lean/TPS", star: false, def: "[time] The time it takes a product to go from beginning to end of a production process (the time it is work-in-process). CT = BT + MT + ST + PT + QT." },
+  { term: "Waste (Muda)", cat: "Lean/TPS", star: false, def: "Anything that fails to add value to the product delivered to the customer. Ohno's 7 wastes: Defects, Inventory, Overprocessing, Waiting, Motion, Transportation, Overproduction." },
+  { term: "Built-in Quality (BiQ)", cat: "Lean/TPS", star: false, def: "Quality achieved by work structuring, including mistakeproofing and successive inspection at each processing step and handoff. Avoids reliance on end-of-line inspection." },
+  { term: "PDCA (Plan Do Check Act)", cat: "Lean/TPS", star: false, def: "Cycle of scientific experimentation for continuous improvement: Plan → Do → Check (compare results to expected) → Act (declare new standard or replan)." },
+  { term: "TFV: Transformation, Flow, Value", cat: "Lean/TPS", star: false, def: "Theory of production with three views: Transformation (converting inputs to outputs), Flow (eliminating waste/delays), Value (meeting customer needs). Lean pursues all three simultaneously." },
+  { term: "Value-Added Time (VAT)", cat: "Lean/TPS", star: false, def: "Time spent on activities that directly transform the product into something the customer values and is willing to pay for." },
+  { term: "Non-value-added Time (NVAT)", cat: "Lean/TPS", star: false, def: "Time workers spend on process steps that are not of value to the customer — the customer is not willing to pay for this." },
+  { term: "Toyota Production System (TPS)", cat: "Lean/TPS", star: false, def: "Manufacturing philosophy developed by Toyota focused on eliminating waste, continuous improvement, just-in-time production, and built-in quality (jidoka)." },
+  { term: "House of Toyota", cat: "Lean/TPS", star: false, def: "Visual representation of TPS: two pillars (JIT and Jidoka/Built-in Quality) on a foundation of standardization, stability, and Toyota's 4P philosophy." },
+  { term: "Toyota's 4P", cat: "Lean/TPS", star: false, def: "Philosophy (long-term thinking), Process (right process = right results), People & Partners (grow them), Problem Solving (continuous learning). Forms a pyramid." },
+  { term: "Lean Construction", cat: "Lean/TPS", star: false, def: "Application of lean thinking to the design and delivery of capital projects, focusing on eliminating waste and improving value flow in construction." },
+  { term: "Lean Triangle", cat: "Lean/TPS", star: false, def: "Three domains of project delivery: (1) Project Organization, (2) Operating System, and (3) Commercial Terms. IPD addresses deficiencies in all three domains." },
+  { term: "ConWIP (Constrained Work in Process)", cat: "Lean/TPS", star: false, def: "A pull mechanism that limits total WIP in a system to a fixed number. New work is released only when completed work exits the system." },
+  { term: "Batch / Batch Size", cat: "Production", star: false, def: "The number of units worked on simultaneously (production batch) or handed off together (transfer batch). Lean aims for batch size = 1 (one-piece flow)." },
+  { term: "Transfer Batch", cat: "Production", star: false, def: "The number of units moved together from one production step to the next. Reducing transfer batch size reduces lead time and WIP." },
+  { term: "One-piece Flow", cat: "Production", star: false, def: "Production where each unit moves immediately to the next step with no intermediate inventory staging (batch size = 1)." },
+  { term: "Work Structuring", cat: "Production", star: false, def: "The design of production operations and work sequences to achieve smooth work flow, eliminate waste, and match supply to demand." },
+  { term: "Synchronization", cat: "Production", star: false, def: "Coordinating timing of multiple processes so inputs arrive just when needed, enabling smooth, uninterrupted flow." },
+  { term: "Multi-skilling", cat: "Production", star: false, def: "Process whereby workers acquire skills typically used by other trades or disciplines, enabling greater flexibility and reducing bottlenecks." },
+  { term: "Standardization", cat: "Production", star: false, def: "The process of limiting variety — for products (same parts repeatedly) or processes (agreed-upon ways of working as the baseline for improvement)." },
+  { term: "Productivity", cat: "Production", star: false, def: "[output/input] The ratio of output produced to the resources used in its production. Example: 3 drawings per labor hour." },
+  { term: "Loose Coupling", cat: "Production", star: false, def: "Production steps separated by buffers so each step can operate independently. Reduces propagation of disruptions but increases WIP." },
+  { term: "Tight Coupling", cat: "Production", star: false, def: "Production steps directly linked with minimal buffers. Highly efficient when everything works, but disruptions propagate rapidly through the system." },
+  { term: "Starve (to starve for resources)", cat: "Production", star: false, def: "A process starves when it lacks an input or has nothing to process — a form of waiting waste that halts production." },
+  { term: "Handoff", cat: "Production", star: false, def: "The act of releasing output from one production step to the next customer step. Quality handoffs require explicit criteria agreed upon between provider and customer." },
+  { term: "Batch Flow", cat: "Process Types", star: false, def: "Production system where processing stations are grouped by function, causing units to follow jumbled paths between stations (like a job shop)." },
+  { term: "Continuous Flow", cat: "Process Types", star: false, def: "Production system where processes have no buffers between steps — units move immediately from one step to the next." },
+  { term: "Job Shop", cat: "Process Types", star: false, def: "Production system for one-of-a-kind products, with machines grouped by function and each unit following its own varied route." },
+  { term: "Line Flow – Machine Paced", cat: "Process Types", star: false, def: "Production system where units move sequentially through fixed stations and the pace is set by the machines (e.g., assembly line)." },
+  { term: "Line Flow – Worker Paced", cat: "Process Types", star: false, def: "Production system where units move sequentially but workers control the pace, allowing some flexibility in production rates." },
+  { term: "Product-Process Matrix", cat: "Process Types", star: false, def: "A framework mapping product volume/variety to appropriate process types, from job shop (low volume, high variety) to continuous flow (high volume, standard product)." },
+  { term: "Discrete Event Simulation", cat: "Simulation", star: true, def: "Modeling technique where system state changes at discrete points in time (events), rather than continuously. Used in Stroboscope to model construction operations." },
+  { term: "Future Event List (FEL)", cat: "Simulation", star: true, def: "In discrete event simulation, the ordered list of all pending events. The simulation engine processes events chronologically. When FEL is empty → simulation halts." },
+  { term: "Activity (Normal or Combi)", cat: "Simulation", star: false, def: "Normal activity: requires resources to start. Combination (Combi) activity: requires multiple resource types simultaneously before it can begin." },
+  { term: "Activity Duration", cat: "Simulation", star: false, def: "The time required to complete an activity, which may be deterministic (fixed) or sampled from a probability distribution (e.g., Normal, Pertpg)." },
+  { term: "Fork", cat: "Simulation", star: false, def: "In simulation, a node where a single flow splits into multiple parallel paths." },
+  { term: "Queue", cat: "Simulation", star: false, def: "A waiting line where entities wait for a resource to become available. Queuing time = non-value-added time in a production system." },
+  { term: "Fusion Queue", cat: "Simulation", star: false, def: "In Stroboscope, a queue that requires multiple different inputs (resources) to arrive before an activity can begin. Combines inputs from multiple sources." },
+  { term: "Utilization", cat: "Simulation", star: false, def: "The fraction of time a resource is actively engaged in productive work. From Kingman's formula: high utilization → exponentially more queuing time." },
+  { term: "Warm-up Time", cat: "Simulation", star: false, def: "In simulation, the initial period before the system reaches steady state. Results from this period are typically discarded in the analysis." },
+  { term: "Seed (for RNG)", cat: "Simulation", star: false, def: "An initial value that determines the sequence of random numbers in a simulation. Using the same seed reproduces identical results." },
+  { term: "Trace / Trace File", cat: "Simulation", star: false, def: "A record of all events and state changes during a simulation run, used for debugging and detailed analysis." },
+  { term: "Stochastic Model", cat: "Simulation", star: false, def: "A model incorporating randomness and probability distributions — as opposed to a deterministic model with fixed input values." },
+  { term: "Perry & Greig PERT_PG Distribution", cat: "Statistics", star: false, def: "Three-parameter distribution for estimating durations: Pertpg[optimistic, most likely, pessimistic]. Used in Stroboscope simulations for realistic variability." },
+  { term: "Critical Path Method (CPM)", cat: "Scheduling", star: false, def: "Method for computing shortest project duration using deterministic activity durations and precedence relationships. The critical path defines project duration." },
+  { term: "PERT", cat: "Scheduling", star: false, def: "Program Evaluation and Review Technique. Uses three-point duration estimates to account for uncertainty. NOTE: too optimistic as it ignores merge bias and resource constraints." },
+  { term: "Merge Bias", cat: "Scheduling", star: true, def: "Tendency for schedules to be over-optimistic when two or more parallel paths must all complete before a successor starts — the longest (latest) path governs." },
+  { term: "Schedule Risk", cat: "Scheduling", star: false, def: "Risk that a project will finish later than planned, due to uncertainty in durations, merge bias, and resource constraints." },
+  { term: "Parade of Trades", cat: "Scheduling", star: false, def: "Phenomenon in construction where trades follow each other sequentially through work areas. Variability in one trade propagates to all downstream trades, reducing efficiency." },
+  { term: "Activity-on-Node Diagram (AON)", cat: "Scheduling", star: false, def: "Network diagram (used in CPM) where activities are shown as nodes and precedence relationships as arrows between them." },
+  { term: "Sequential Dependence", cat: "Scheduling", star: false, def: "A finish-to-start relationship: one activity must be fully complete before the next can start. The most common type of dependency in CPM networks." },
+  { term: "Assembled-to-Order (ATO)", cat: "CODP", star: false, def: "Product assembled from pre-made parts to meet a specific customer order. CODP is at assembly. Example: configure-to-order computers." },
+  { term: "Engineered-to-Order (ETO)", cat: "CODP", star: false, def: "Product designed and engineered specifically for a customer order, then manufactured. Longest lead time; most upstream CODP. Example: custom steel connections." },
+  { term: "Fabricated-to-Order (FTO)", cat: "CODP", star: false, def: "Product already designed but fabricated only upon customer order. Example: standard structural steel cut to specified lengths." },
+  { term: "Made-to-Order (MTO)", cat: "CODP", star: false, def: "Product already designed, made only when a specific customer demands it. Example: custom paint colors mixed on demand." },
+  { term: "Made-to-Stock (MTS)", cat: "CODP", star: false, def: "Product made based on forecast demand, stored in inventory until a customer wants it. Most downstream CODP. Example: standard drywall sheets." },
+  { term: "Vertical Integration", cat: "Supply Chain", star: false, def: "When a single company controls multiple stages of a supply chain (e.g., both manufacturing and distribution), reducing reliance on external suppliers." },
+  { term: "Lead Time", cat: "Supply Chain", star: false, def: "[time] The time from placing an order to receiving the goods. Includes design, fabrication, and delivery time." },
+  { term: "Supplier Managed Inventory (SMI/VMI)", cat: "Supply Chain", star: false, def: "Inventory located at the customer's site but managed and replenished by the supplier based on consumption data." },
+  { term: "Milk-Run System", cat: "Supply Chain", star: false, def: "A logistics system where a vehicle makes regular, scheduled pickups/deliveries from multiple suppliers — reducing inventory and transport waste." },
+  { term: "Dis-intermediation", cat: "Supply Chain", star: false, def: "Removing middlemen from the supply chain so buyers deal directly with manufacturers/suppliers, reducing cost and lead time." },
+  { term: "Transparency (in supply chain)", cat: "Supply Chain", star: false, def: "The ability of all supply chain participants to see relevant information (demand, inventory levels, lead times) — reduces the bullwhip effect." },
+  { term: "Quantity Take-Off (QTO)", cat: "Materials", star: false, def: "The process of measuring and listing all materials needed for a construction project based on drawings and specifications." },
+  { term: "Purchase Order (PO)", cat: "Materials", star: false, def: "A formal document issued by a buyer to a seller, confirming the intent to purchase goods or services at specified terms." },
+  { term: "SKU (Stock-Keeping Unit)", cat: "Materials", star: false, def: "A unique identifier assigned to a specific product variant in a warehouse or store inventory system." },
+  { term: "UPC (Universal Product Code)", cat: "Materials", star: false, def: "A standardized barcode system used for tracking retail products through the supply chain." },
+  { term: "Point-of-Sale (POS) Data", cat: "Supply Chain", star: false, def: "Data collected at the point of retail sale — used for real-time demand forecasting and supply chain replenishment decisions." },
+  { term: "Normal Distribution", cat: "Statistics", star: false, def: "A probability distribution (bell curve) where values cluster symmetrically around the mean. Characterized by mean (μ) and standard deviation (σ)." },
+  { term: "Standard Deviation", cat: "Statistics", star: false, def: "A measure of variability/spread in a dataset. Higher SD = more variability = more risk in schedule or production estimates." },
+  { term: "Central Limit Theorem (CLT)", cat: "Statistics", star: false, def: "States that the sum of many independent random variables tends toward a normal distribution, regardless of original distributions — applies when n is large." },
+  { term: "Variability", cat: "Statistics", star: true, def: "The degree of unpredictability in process durations, demand, or quality. Root cause of queues and unreliable flow. From Kingman: Tq ≈ V × U × T." },
+  { term: "Process Capability", cat: "Production", star: false, def: "Probability distribution describing the variation in the output of a process under normal operating conditions." },
+  { term: "Process Mapping", cat: "Lean/TPS", star: false, def: "Creating a visual flowchart of a process showing all steps, decisions, and flows — used to identify waste and improvement opportunities." },
+];
+
+const ALL_CATS = ["All", "⭐ Priority", ...Object.keys(CAT_COLORS)];
+
+let state = {
+  view: "glossary", // glossary | flashcard | quiz
+  search: "",
+  cat: "All",
+  fcIdx: 0,
+  fcFlipped: false,
+  fcKnown: new Set(),
+  fcUnknown: new Set(),
+  quizStarted: false,
+  quizTerms: [],
+  quizIdx: 0,
+  quizOpts: [],
+  quizAnswered: null,
+  quizScore: { c: 0, w: 0 },
+  quizDone: false,
+  expanded: new Set(),
+};
+
+function getFiltered() {
+  let items = TERMS;
+  if (state.cat === "⭐ Priority") items = items.filter(t => t.star);
+  else if (state.cat !== "All") items = items.filter(t => t.cat === state.cat);
+  if (state.search.trim()) {
+    const q = state.search.toLowerCase();
+    items = items.filter(t => t.term.toLowerCase().includes(q) || t.def.toLowerCase().includes(q));
+  }
+  return items;
+}
+
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function startQuiz() {
+  const pool = getFiltered();
+  const terms = shuffle(pool).slice(0, Math.min(10, pool.length));
+  state.quizTerms = terms;
+  state.quizIdx = 0;
+  state.quizScore = { c: 0, w: 0 };
+  state.quizAnswered = null;
+  state.quizDone = false;
+  state.quizStarted = true;
+  genOpts();
+}
+
+function genOpts() {
+  const cur = state.quizTerms[state.quizIdx];
+  const pool = getFiltered();
+  const wrong = shuffle(pool.filter(t => t.term !== cur.term)).slice(0, 3);
+  state.quizOpts = shuffle([...wrong, cur]);
+  state.quizAnswered = null;
+}
+
+function render() {
+  document.getElementById("app").innerHTML = buildApp();
+  bindEvents();
+}
+
+function buildApp() {
+  const filtered = getFiltered();
+  return `
+    ${buildTopBar()}
+    <div id="main-content">
+      ${state.view === "glossary" ? buildGlossary(filtered) : ""}
+      ${state.view === "flashcard" ? buildFlashcard(filtered) : ""}
+      ${state.view === "quiz" ? buildQuiz(filtered) : ""}
+    </div>
+    ${buildBottomNav()}
+  `;
+}
+
+function buildTopBar() {
+  return `
+  <div class="topbar">
+    <div class="topbar-title">CE268B · LEAN CONSTRUCTION & SCM</div>
+    <div class="topbar-sub">${TERMS.length} terms · 9 categories · Quiz ready</div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="search-input" type="search" placeholder="Search terms..." value="${state.search}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    </div>
+    <div class="tabs">
+      ${ALL_CATS.map(c => `<button class="tab${state.cat === c ? " active" : ""}" data-cat="${c}">${c}</button>`).join("")}
+    </div>
+  </div>`;
+}
+
+function buildGlossary(items) {
+  if (!items.length) return `<div class="empty">No terms found for "${state.search}"</div>`;
+  return `
+  <div class="count-bar">${items.length} terms${state.search ? ` matching "${state.search}"` : ""}</div>
+  <div class="list">
+    ${items.map((t, i) => {
+      const color = CAT_COLORS[t.cat] || "#818cf8";
+      const isOpen = state.expanded.has(t.term);
+      return `
+      <div class="card${t.star ? " starred" : ""}${isOpen ? " open" : ""}" data-term="${t.term.replace(/"/g, "&quot;")}">
+        <div class="card-head">
+          <div class="cat-dot" style="background:${color}"></div>
+          <span class="card-term">${t.term}</span>
+          ${t.star ? `<span class="card-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">⭐</span>` : ""}
+          <span class="chevron">▼</span>
+        </div>
+        <div class="card-body">
+          <p class="card-def">${t.def}</p>
+          <div class="card-cat-label">${t.cat}</div>
+        </div>
+      </div>`;
+    }).join("")}
+  </div>`;
+}
+
+function buildFlashcard(items) {
+  if (!items.length) return `<div class="empty">No terms in this category</div>`;
+  const idx = Math.min(state.fcIdx, items.length - 1);
+  const card = items[idx];
+  const color = CAT_COLORS[card.cat] || "#818cf8";
+  const known = state.fcKnown.size;
+  const pct = Math.round((known / TERMS.length) * 100);
+
+  return `
+  <div class="fc-view">
+    <div class="fc-meta">
+      <span class="fc-counter">${idx + 1} / ${items.length}</span>
+      <span style="font-size:12px;color:#10b981">${known} known (${pct}%)</span>
+    </div>
+    <div class="fc-progress"><div class="fc-progress-inner" style="width:${(idx/items.length)*100}%"></div></div>
+
+    <div class="flashcard" id="flashcard">
+      ${!state.fcFlipped ? `
+        <div class="fc-hint">Tap to reveal definition</div>
+        <div class="fc-front-term">${card.term}</div>
+        <span class="fc-cat" style="background:${color}22;color:${color}">${card.cat}</span>
+        ${card.star ? `<div class="fc-prio">⭐ High priority</div>` : ""}
+      ` : `
+        <div class="fc-back-label">DEFINITION</div>
+        <div class="fc-back-def">${card.def}</div>
+      `}
+    </div>
+
+    <div class="fc-nav">
+      <button class="fc-nav-btn" id="fc-prev">← Prev</button>
+      <button class="fc-nav-btn" id="fc-next">Next →</button>
+    </div>
+    <div class="fc-actions">
+      <button class="fc-btn learn" id="fc-unknown">✗ Still Learning</button>
+      <button class="fc-btn know" id="fc-known">✓ Got It!</button>
+    </div>
+    ${state.fcUnknown.size > 0 ? `<div style="text-align:center;margin-top:12px;font-size:12px;color:#f59e0b">${state.fcUnknown.size} cards still to master</div>` : ""}
+  </div>`;
+}
+
+function buildQuiz(items) {
+  if (!state.quizStarted) {
+    return `
+    <div class="quiz-view">
+      <div class="quiz-start">
+        <div style="font-size:48px;margin-bottom:12px">🎯</div>
+        <h2>Multiple Choice Quiz</h2>
+        <p>10 questions from <strong style="color:#818cf8">${state.cat === "All" ? "all categories" : state.cat}</strong> (${items.length} terms available)</p>
+        <button class="quiz-start-btn" id="quiz-start-btn">Start Quiz</button>
+      </div>
+    </div>`;
+  }
+  if (state.quizDone) {
+    const score = state.quizScore.c;
+    const color = score >= 8 ? "#10b981" : score >= 6 ? "#f59e0b" : "#ef4444";
+    return `
+    <div class="quiz-view">
+      <div class="quiz-result">
+        <div class="quiz-result-score" style="color:${color}">${score}/10</div>
+        <div class="quiz-result-msg">${score >= 8 ? "🏆 Excellent — ready for the exam!" : score >= 6 ? "👍 Good — review weak areas" : "📚 Keep studying with flashcards"}</div>
+        <div style="display:flex;gap:10px;justify-content:center">
+          <button class="quiz-result-btn" id="quiz-retry">Retry</button>
+          <button class="quiz-result-btn" style="background:#1e293b;border:1px solid #334155" id="quiz-back">Back</button>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  const cur = state.quizTerms[state.quizIdx];
+  const color = CAT_COLORS[cur.cat] || "#818cf8";
+  const pct = (state.quizIdx / state.quizTerms.length) * 100;
+
+  return `
+  <div class="quiz-view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <span style="font-size:12px;color:#64748b;font-variant-numeric:tabular-nums">${state.quizIdx + 1} / ${state.quizTerms.length}</span>
+      <div style="display:flex;gap:12px">
+        <span style="font-size:13px;color:#34d399">✓ ${state.quizScore.c}</span>
+        <span style="font-size:13px;color:#f87171">✗ ${state.quizScore.w}</span>
+      </div>
+    </div>
+    <div style="height:3px;background:#1e293b;border-radius:99px;margin-bottom:20px">
+      <div style="height:100%;width:${pct}%;background:#818cf8;border-radius:99px;transition:width 0.3s"></div>
+    </div>
+    <div class="quiz-q">DEFINE THIS TERM:</div>
+    <div class="quiz-term">${cur.term}
+      <span style="font-size:12px;padding:2px 8px;border-radius:99px;margin-left:8px;background:${color}22;color:${color};vertical-align:middle">${cur.cat}</span>
+    </div>
+    <div class="quiz-opts">
+      ${state.quizOpts.map((opt, i) => {
+        const isCorrect = opt.term === cur.term;
+        let cls = "quiz-opt";
+        if (state.quizAnswered !== null) {
+          if (isCorrect) cls += " correct";
+        }
+        return `<button class="${cls}" data-qi="${i}">${opt.def.substring(0, 160)}${opt.def.length > 160 ? "..." : ""}</button>`;
+      }).join("")}
+    </div>
+    ${state.quizAnswered !== null ? `
+      <div class="quiz-feedback ${state.quizAnswered}">
+        ${state.quizAnswered === "correct" ? "✓ Correct!" : `✗ Correct answer: "${cur.term}"`}
+      </div>
+      <button class="quiz-next" id="quiz-next-btn">
+        ${state.quizIdx + 1 >= state.quizTerms.length ? "See Results →" : "Next Question →"}
+      </button>
+    ` : ""}
+  </div>`;
+}
+
+function buildBottomNav() {
+  const items = [
+    { id: "glossary", icon: "📖", label: "Glossary" },
+    { id: "flashcard", icon: "🃏", label: "Flashcards" },
+    { id: "quiz", icon: "🎯", label: "Quiz" },
+  ];
+  return `
+  <nav class="bottom-nav">
+    ${items.map(it => `
+      <button class="nav-btn${state.view === it.id ? " active" : ""}" data-view="${it.id}">
+        <span class="nav-icon">${it.icon}</span>
+        ${it.label}
+      </button>
+    `).join("")}
+  </nav>`;
+}
+
+function bindEvents() {
+  // Search
+  const si = document.getElementById("search-input");
+  if (si) si.addEventListener("input", e => { state.search = e.target.value; render(); });
+
+  // Category tabs
+  document.querySelectorAll(".tab").forEach(btn => {
+    btn.addEventListener("click", () => { state.cat = btn.dataset.cat; state.fcIdx = 0; render(); });
+  });
+
+  // Bottom nav
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => { state.view = btn.dataset.view; render(); });
+  });
+
+  // Glossary expand
+  document.querySelectorAll(".card").forEach(card => {
+    card.querySelector(".card-head")?.addEventListener("click", () => {
+      const term = card.dataset.term;
+      if (state.expanded.has(term)) state.expanded.delete(term);
+      else state.expanded.add(term);
+      render();
+    });
+  });
+
+  // Flashcard flip
+  const fc = document.getElementById("flashcard");
+  if (fc) fc.addEventListener("click", () => { state.fcFlipped = !state.fcFlipped; render(); });
+
+  // FC nav
+  document.getElementById("fc-prev")?.addEventListener("click", e => {
+    e.stopPropagation();
+    const items = getFiltered();
+    state.fcIdx = (state.fcIdx - 1 + items.length) % items.length;
+    state.fcFlipped = false;
+    render();
+  });
+  document.getElementById("fc-next")?.addEventListener("click", e => {
+    e.stopPropagation();
+    const items = getFiltered();
+    state.fcIdx = (state.fcIdx + 1) % items.length;
+    state.fcFlipped = false;
+    render();
+  });
+  document.getElementById("fc-known")?.addEventListener("click", e => {
+    e.stopPropagation();
+    const items = getFiltered();
+    state.fcKnown.add(items[state.fcIdx].term);
+    state.fcUnknown.delete(items[state.fcIdx].term);
+    state.fcIdx = (state.fcIdx + 1) % items.length;
+    state.fcFlipped = false;
+    render();
+  });
+  document.getElementById("fc-unknown")?.addEventListener("click", e => {
+    e.stopPropagation();
+    const items = getFiltered();
+    state.fcUnknown.add(items[state.fcIdx].term);
+    state.fcKnown.delete(items[state.fcIdx].term);
+    state.fcIdx = (state.fcIdx + 1) % items.length;
+    state.fcFlipped = false;
+    render();
+  });
+
+  // Quiz
+  document.getElementById("quiz-start-btn")?.addEventListener("click", () => { startQuiz(); render(); });
+  document.getElementById("quiz-retry")?.addEventListener("click", () => { startQuiz(); render(); });
+  document.getElementById("quiz-back")?.addEventListener("click", () => { state.quizStarted = false; render(); });
+
+  document.querySelectorAll(".quiz-opt").forEach((btn, i) => {
+    btn.addEventListener("click", () => {
+      if (state.quizAnswered !== null) return;
+      const sel = state.quizOpts[i];
+      const cur = state.quizTerms[state.quizIdx];
+      const correct = sel.term === cur.term;
+      state.quizAnswered = correct ? "correct" : "wrong";
+      if (correct) state.quizScore.c++; else state.quizScore.w++;
+      render();
+    });
+  });
+
+  document.getElementById("quiz-next-btn")?.addEventListener("click", () => {
+    const nextIdx = state.quizIdx + 1;
+    if (nextIdx >= state.quizTerms.length) { state.quizDone = true; render(); }
+    else { state.quizIdx = nextIdx; genOpts(); render(); }
+  });
+}
+
+render();
+</script>
+</body>
+</html>
